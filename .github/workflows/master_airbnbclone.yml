@@ -1,5 +1,18 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
+
+# Build React app step
+- name: Build React app
+  run: |
+    npm ci
+    npm run build
+
+# Copy React build step
+- name: Copy React build to wwwroot
+  run: |
+    mkdir -p "${{env.DOTNET_ROOT}}/myapp/wwwroot"
+    xcopy /E /Y "dist\*" "${{env.DOTNET_ROOT}}\myapp\wwwroot\"
+
 name: Build and deploy ASP.Net Core app to Azure Web App - Airbnbclone
 on:
   push:
