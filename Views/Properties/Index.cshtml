@@ -1,0 +1,32 @@
+﻿@model IEnumerable<AirbnbCloneBackend.Models.Property>
+
+<h1>Properties</h1>
+
+<p>
+    <a asp-action="Details">View Details</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Host</th>
+            <th>Location</th>
+            <th>Price Per Night</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                <td>@Html.DisplayFor(modelItem => item.Host.Firstname) @Html.DisplayFor(modelItem => item.Host.Lastname)</td>
+                <td>@Html.DisplayFor(modelItem => item.Location.City), @Html.DisplayFor(modelItem => item.Location.Country)</td>
+                <td>@Html.DisplayFor(modelItem => item.PricePerNight)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.PropertyID">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

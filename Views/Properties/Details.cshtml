@@ -1,0 +1,27 @@
+﻿@model AirbnbCloneBackend.Models.Property
+
+<h1>Property Details</h1>
+
+<div>
+    <h4>@Html.DisplayFor(model => model.Title)</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Host</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Host.Firstname) @Html.DisplayFor(model => model.Host.Lastname)</dd>
+
+        <dt class="col-sm-2">Location</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Location.City), @Html.DisplayFor(model => model.Location.Country)</dd>
+
+        <dt class="col-sm-2">Price Per Night</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.PricePerNight)</dd>
+
+        <dt class="col-sm-2">Description</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Description)</dd>
+
+        <dt class="col-sm-2">Max Guests</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.MaxGuests)</dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
