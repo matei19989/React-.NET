@@ -59,8 +59,11 @@ const NavBar = () => {
                     <Link to="/experiences" className="text-gray-800 hover:text-gray-600 px-2 py-1 text-sm">
                         Experiences
                     </Link>
-                    <Link to="/airbnb-your-home" className="text-gray-800 hover:text-gray-600 px-2 py-1 text-sm">
-                        Airbnb your home
+                    <Link to="/property/create" className="text-gray-800 hover:text-gray-600 px-2 py-1 text-sm">
+                        List Your Home
+                    </Link>
+                    <Link to="/my-properties" className="text-gray-800 hover:text-gray-600 px-2 py-1 text-sm">
+                        My Properties
                     </Link>
                     <CurrencySwitcher/>
                     <Profile/>
