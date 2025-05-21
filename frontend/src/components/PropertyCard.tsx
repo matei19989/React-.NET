@@ -2,100 +2,86 @@ import React from 'react';
 import { Heart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export interface PropertyData {
-    id: string;
-    title: string;
-    location: string;
-    price: number;
-    rating: number;
-    reviewCount: number;
-    images: string[];
-    availableDates?: {
-        startDate: string;
-        endDate: string;
-    };
-    propertyType: string;
-    isSuperhost?: boolean;
+// Define an interface for the property data structure
+interface PropertyData {
+  propertyID: number;
+  title: string;
+  location: {
+    city: string;
+    state: string;
+    country: string;
+  };
+  pricePerNight: number;
+  propertyImages?: Array<{
+    imageUrl: string;
+    description: string;
+  }>;
+  // Add other properties you need
 }
 
+// Define the component props interface
 interface PropertyCardProps {
-    property: PropertyData;
-    currency?: string;
+  property: PropertyData;
 }
 
-const PropertyCard: React.FC<PropertyCardProps> = ({
-                                                       property,
-                                                       currency = 'USD'
-                                                   }) => {
-    const {
-        id,
-        title,
-        location,
-        price,
-        rating,
-        reviewCount,
-        images,
-        availableDates,
-        propertyType,
-        isSuperhost
-    } = property;
+// Add type annotation to your component
+const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+  // Destructure the property data
+  const { 
+    propertyID, 
+    title, 
+    location, 
+    pricePerNight, 
+    propertyImages = [] 
+  } = property;
 
-    const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£';
+  // Get the first image or use a placeholder
+  const mainImage = propertyImages && propertyImages.length > 0 
+    ? propertyImages[0].imageUrl 
+    : 'https://placehold.co/600x400?text=No+Image';
 
-    return (
-        <div className="group relative">
-            {/* Image carousel */}
-            <div className="relative aspect-square overflow-hidden rounded-xl">
-                <button
-                    className="absolute right-3 top-3 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white transition"
-                    aria-label="Save to wishlist"
-                >
-                    <Heart className="w-5 h-5 text-gray-600" />
-                </button>
+  // Calculate random rating for demo purposes (in a real app, this would come from reviews)
+  const rating = ((Math.random() * 2) + 3).toFixed(1); // Random rating between 3.0 and 5.0
 
-                <Link to={`/property/${id}`}>
-                    <img
-                        src={images[0]}
-                        alt={title}
-                        className="h-full w-full object-cover transition group-hover:scale-105 duration-300"
-                    />
-                </Link>
-            </div>
-
-            {/* Property details */}
-            <div className="mt-2">
-                <Link to={`/property/${id}`} className="block">
-                    <div className="flex justify-between items-start">
-                        <h3 className="font-medium text-gray-900 truncate">{title}</h3>
-                        <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-current text-gray-900" />
-                            <span className="text-sm">{rating.toFixed(1)}</span>
-                        </div>
-                    </div>
-
-                    <p className="text-gray-500 text-sm">{location}</p>
-                    <p className="text-gray-500 text-sm mt-1">{propertyType}</p>
-
-                    {availableDates && (
-                        <p className="text-gray-500 text-sm mt-1">
-                            {new Date(availableDates.startDate).toLocaleDateString()} - {new Date(availableDates.endDate).toLocaleDateString()}
-                        </p>
-                    )}
-
-                    <p className="mt-2 text-gray-900">
-                        <span className="font-semibold">{currencySymbol}{price}</span> <span className="text-sm">night</span>
-                    </p>
-                </Link>
-            </div>
-
-            {/* Superhost badge */}
-            {isSuperhost && (
-                <div className="absolute top-3 left-3 bg-white text-xs font-medium px-2 py-1 rounded-full shadow">
-                    Superhost
-                </div>
-            )}
+  return (
+    <div className="group">
+      <Link to={`/property/${propertyID}`} className="block">
+        <div className="relative overflow-hidden rounded-xl aspect-square">
+          {/* Main property image */}
+          <img 
+            src={mainImage} 
+            alt={title}
+            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+          />
+          
+          {/* Favorite button */}
+          <button className="absolute top-3 right-3 p-2 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100 transition-colors duration-200">
+            <Heart className="h-5 w-5 text-gray-500 hover:text-red-500 transition-colors duration-200" />
+          </button>
         </div>
-    );
+        
+        {/* Property details */}
+        <div className="mt-2">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-gray-900 truncate">{title}</h3>
+            <div className="flex items-center">
+              <Star className="h-4 w-4 fill-current text-black" />
+              <span className="ml-1 text-sm">{rating}</span>
+            </div>
+          </div>
+          
+          <p className="text-gray-500 text-sm mt-1">
+            {location.city}, {location.state}, {location.country}
+          </p>
+          
+          <p className="mt-2">
+            <span className="font-semibold">${pricePerNight}</span>
+            <span className="text-gray-500"> / night</span>
+          </p>
+        </div>
+      </Link>
+    </div>
+  );
 };
 
 export default PropertyCard;

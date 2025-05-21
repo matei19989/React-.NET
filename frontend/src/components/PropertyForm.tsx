@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PropertyInput } from '../api/propertyService';
+import { PropertyInput } from '../services/propertyService';
 
 interface PropertyFormProps {
     initialData: PropertyInput;

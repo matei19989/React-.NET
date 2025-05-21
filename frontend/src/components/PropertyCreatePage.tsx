@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProperty, PropertyInput, LocationInput } from '../api/propertyService';
+import { createProperty, PropertyInput, LocationInput } from '../services/propertyService';
 import PropertyForm from './PropertyForm';
 
 const PropertyCreatePage: React.FC = () => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchPropertyById, ApiProperty } from '../api/propertyService';
+import { fetchPropertyById, ApiProperty } from '../services/propertyService';
 import { ArrowLeft, ArrowRight, Star, MapPin, Users, Bed, Bath, Home } from 'lucide-react';
 
 interface PropertyImage {

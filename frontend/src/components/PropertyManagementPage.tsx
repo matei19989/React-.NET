@@ -4,7 +4,7 @@ import {
     fetchCurrentUserProperties,
     deleteProperty,
     ApiProperty
-} from '../api/propertyService';
+} from '../services/propertyService.js';
 import { useAuth } from '../context/AuthContext';
 import { PlusCircle, Edit, Trash2, AlertCircle } from 'lucide-react';
 

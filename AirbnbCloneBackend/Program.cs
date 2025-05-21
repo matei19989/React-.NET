@@ -26,7 +26,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("ReactAppPolicy", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:5173" // Your local React app URL
+                "http://localhost:5173", // Your local React app URL (Vite default)
+                "http://localhost:5174", // Fallback port
+                "http://localhost:3000"  // Alternative React port
              )
              .AllowAnyHeader()
              .AllowAnyMethod()

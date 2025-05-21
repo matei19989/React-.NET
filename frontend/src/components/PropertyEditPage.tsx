@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { fetchPropertyById, updateProperty, PropertyInput } from '../api/propertyService';
+import { fetchPropertyById, updateProperty, PropertyInput } from '../services/propertyService';
 import PropertyForm from './PropertyForm';
 
 const PropertyEditPage: React.FC = () => {
