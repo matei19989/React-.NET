@@ -3,6 +3,8 @@ using AirbnbCloneBackend.Models;
 using AirbnbCloneBackend.Services.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace AirbnbCloneBackend.Controllers
 {
@@ -61,7 +63,23 @@ namespace AirbnbCloneBackend.Controllers
             return Ok(properties);
         }
 
+        // GET: api/ApiProperties/current
+        [Authorize]
+        [HttpGet("current")]
+        public async Task<ActionResult<IEnumerable<Property>>> GetCurrentUserProperties()
+        {
+            // Get the current user's ID from the token claims
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var properties = await _propertyService.GetPropertiesByHostAsync(userId);
+            return Ok(properties);
+        }
+
         // POST: api/ApiProperties
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Property>> CreateProperty(Property property)
         {
@@ -69,6 +87,15 @@ namespace AirbnbCloneBackend.Controllers
             {
                 return BadRequest(ModelState);
             }
+
+            // Get the current user's ID from the token claims
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+            {
+                return Unauthorized();
+            }
+
+            // Set the HostID to the current user
+            property.HostID = userId;
 
             var createdProperty = await _propertyService.CreatePropertyAsync(property);
 
@@ -79,6 +106,7 @@ namespace AirbnbCloneBackend.Controllers
         }
 
         // PUT: api/ApiProperties/{id}
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProperty(int id, Property property)
         {
@@ -94,6 +122,24 @@ namespace AirbnbCloneBackend.Controllers
 
             try
             {
+                // Get the current user's ID from the token claims
+                if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+                {
+                    return Unauthorized();
+                }
+
+                // Verify that the property belongs to the current user
+                var existingProperty = await _propertyService.GetPropertyByIdAsync(id);
+                if (existingProperty == null)
+                {
+                    return NotFound();
+                }
+
+                if (existingProperty.HostID != userId)
+                {
+                    return Forbid();
+                }
+
                 await _propertyService.UpdatePropertyAsync(property);
             }
             catch
@@ -109,6 +155,7 @@ namespace AirbnbCloneBackend.Controllers
         }
 
         // DELETE: api/ApiProperties/{id}
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProperty(int id)
         {
@@ -116,6 +163,18 @@ namespace AirbnbCloneBackend.Controllers
             if (property == null)
             {
                 return NotFound();
+            }
+
+            // Get the current user's ID from the token claims
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+            {
+                return Unauthorized();
+            }
+
+            // Verify that the property belongs to the current user
+            if (property.HostID != userId)
+            {
+                return Forbid();
             }
 
             await _propertyService.DeletePropertyAsync(id);

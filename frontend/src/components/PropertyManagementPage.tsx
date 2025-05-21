@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-    fetchProperties,
+    fetchCurrentUserProperties,
     deleteProperty,
     ApiProperty
 } from '../api/propertyService';
+import { useAuth } from '../context/AuthContext';
 import { PlusCircle, Edit, Trash2, AlertCircle } from 'lucide-react';
 
 const PropertyManagementPage: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [properties, setProperties] = useState<ApiProperty[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -16,20 +18,12 @@ const PropertyManagementPage: React.FC = () => {
     const [propertyToDelete, setPropertyToDelete] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // For now, we'll just use a hardcoded host ID
-    // In a real app, this would come from authentication
-    const hostId = 1;
-
     useEffect(() => {
         const loadProperties = async () => {
             try {
                 setLoading(true);
-                const data = await fetchProperties();
-
-                // Filter to show only the current user's properties
-                // In a real app with auth, you would use the logged-in user's ID
-                const userProperties = data.filter(p => p.hostID === hostId);
-
+                // Now uses the authenticated endpoint that gets only the current user's properties
+                const userProperties = await fetchCurrentUserProperties();
                 setProperties(userProperties);
                 setError(null);
             } catch (err) {
@@ -41,7 +35,7 @@ const PropertyManagementPage: React.FC = () => {
         };
 
         loadProperties();
-    }, [hostId]);
+    }, []);
 
     const handleDeleteClick = (propertyId: number) => {
         setPropertyToDelete(propertyId);

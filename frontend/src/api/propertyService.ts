@@ -1,4 +1,6 @@
 // src/api/propertyService.ts
+const USE_MOCK_DATA = false;
+import { authAxios } from './authService';
 
 // Define interfaces to match your API structure
 export interface ApiProperty {
@@ -88,14 +90,8 @@ const API_BASE_URL = 'https://localhost:7144/api';
  */
 export const fetchProperties = async (): Promise<ApiProperty[]> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/apiproperties`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
+        const response = await authAxios.get(`${API_BASE_URL}/apiproperties`);
+        return response.data;
     } catch (error) {
         console.error("Error fetching properties:", error);
         throw error;
@@ -109,16 +105,24 @@ export const fetchProperties = async (): Promise<ApiProperty[]> => {
  */
 export const fetchPropertyById = async (propertyId: number): Promise<ApiProperty> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/apiproperties/${propertyId}`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
+        const response = await authAxios.get(`${API_BASE_URL}/apiproperties/${propertyId}`);
+        return response.data;
     } catch (error) {
         console.error(`Error fetching property ${propertyId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * Fetch properties owned by the current user (requires auth)
+ * @returns {Promise<ApiProperty[]>} Promise containing the user's properties
+ */
+export const fetchCurrentUserProperties = async (): Promise<ApiProperty[]> => {
+    try {
+        const response = await authAxios.get(`${API_BASE_URL}/apiproperties/current`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching current user properties:", error);
         throw error;
     }
 };
@@ -145,14 +149,8 @@ export const searchProperties = async (
         if (minPrice) params.append('minPrice', minPrice.toString());
         if (maxPrice) params.append('maxPrice', maxPrice.toString());
 
-        const response = await fetch(`${API_BASE_URL}/apiproperties/search?${params.toString()}`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
+        const response = await authAxios.get(`${API_BASE_URL}/apiproperties/search?${params.toString()}`);
+        return response.data;
     } catch (error) {
         console.error("Error searching properties:", error);
         throw error;
@@ -160,26 +158,14 @@ export const searchProperties = async (
 };
 
 /**
- * Create a new property
+ * Create a new property (requires auth)
  * @param {PropertyInput} propertyData - The property data to create
  * @returns {Promise<ApiProperty>} Promise containing the created property
  */
 export const createProperty = async (propertyData: PropertyInput): Promise<ApiProperty> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/apiproperties`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(propertyData),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
+        const response = await authAxios.post(`${API_BASE_URL}/apiproperties`, propertyData);
+        return response.data;
     } catch (error) {
         console.error('Error creating property:', error);
         throw error;
@@ -187,7 +173,7 @@ export const createProperty = async (propertyData: PropertyInput): Promise<ApiPr
 };
 
 /**
- * Update an existing property
+ * Update an existing property (requires auth)
  * @param {number} propertyId - The ID of the property to update
  * @param {PropertyInput} propertyData - The updated property data
  * @returns {Promise<void>} Promise that resolves when the update is complete
@@ -197,17 +183,10 @@ export const updateProperty = async (
     propertyData: PropertyInput
 ): Promise<void> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/apiproperties/${propertyId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ propertyID: propertyId, ...propertyData }),
+        await authAxios.put(`${API_BASE_URL}/apiproperties/${propertyId}`, { 
+            propertyID: propertyId, 
+            ...propertyData 
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
     } catch (error) {
         console.error(`Error updating property ${propertyId}:`, error);
         throw error;
@@ -215,19 +194,13 @@ export const updateProperty = async (
 };
 
 /**
- * Delete a property
+ * Delete a property (requires auth)
  * @param {number} propertyId - The ID of the property to delete
  * @returns {Promise<void>} Promise that resolves when the deletion is complete
  */
 export const deleteProperty = async (propertyId: number): Promise<void> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/apiproperties/${propertyId}`, {
-            method: 'DELETE',
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        await authAxios.delete(`${API_BASE_URL}/apiproperties/${propertyId}`);
     } catch (error) {
         console.error(`Error deleting property ${propertyId}:`, error);
         throw error;
@@ -235,7 +208,7 @@ export const deleteProperty = async (propertyId: number): Promise<void> => {
 };
 
 /**
- * Upload property images
+ * Upload property images (requires auth)
  * @param {number} propertyId - The ID of the property to attach images to
  * @param {FormData} formData - FormData containing the images
  * @returns {Promise<void>} Promise that resolves when the upload is complete
@@ -245,14 +218,7 @@ export const uploadPropertyImages = async (
     formData: FormData
 ): Promise<void> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/apiproperties/${propertyId}/images`, {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        await authAxios.post(`${API_BASE_URL}/apiproperties/${propertyId}/images`, formData);
     } catch (error) {
         console.error(`Error uploading images for property ${propertyId}:`, error);
         throw error;

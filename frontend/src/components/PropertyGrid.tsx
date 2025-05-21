@@ -4,8 +4,6 @@ import { AppResetContext } from './NavBar';
 // Import API functions with proper TypeScript types
 import { fetchProperties, ApiProperty } from '../api/propertyService';
 
-// Mock data imports can remain for fallback
-
 interface PropertyGridProps {
     destination?: string;
     checkIn?: Date | null;
@@ -26,8 +24,6 @@ const convertApiPropertyToPropertyData = (apiProp: ApiProperty): PropertyData =>
         ? apiProp.propertyImages.map(img => img.imageUrl)
         : ['https://via.placeholder.com/500x500?text=No+Image'];
 
-    console.log(`Converting property ${apiProp.propertyID}: Images count = ${imageUrls.length}`);
-
     return {
         id: apiProp.propertyID.toString(),
         title: apiProp.title,
@@ -42,11 +38,11 @@ const convertApiPropertyToPropertyData = (apiProp: ApiProperty): PropertyData =>
 };
 
 const PropertyGrid: React.FC<PropertyGridProps> = ({
-                                                       destination,
-                                                       checkIn,
-                                                       checkOut,
-                                                       totalGuests
-                                                   }) => {
+    destination,
+    checkIn,
+    checkOut,
+    totalGuests
+}) => {
     const [properties, setProperties] = useState<PropertyData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -64,15 +60,16 @@ const PropertyGrid: React.FC<PropertyGridProps> = ({
         }
     }, []);
 
-    // Fetch properties from API
+    // Fetch properties
     useEffect(() => {
         const getProperties = async () => {
             try {
+                console.log("Fetching properties with params:", { destination, checkIn, checkOut, totalGuests });
                 setLoading(true);
-                // Fetch properties from the API
+                
+                // Fetch properties - this will use mock data if USE_MOCK_DATA is true in propertyService.ts
                 const apiProperties = await fetchProperties();
-
-                console.log(`Fetched ${apiProperties.length} properties from API`);
+                console.log(`Fetched ${apiProperties.length} properties`);
 
                 // Convert API properties to your PropertyData format
                 const convertedProperties: PropertyData[] = apiProperties.map(convertApiPropertyToPropertyData);
@@ -83,14 +80,14 @@ const PropertyGrid: React.FC<PropertyGridProps> = ({
                     filteredProperties = filteredProperties.filter(
                         property => property.location.toLowerCase().includes(destination.toLowerCase())
                     );
+                    console.log(`Filtered to ${filteredProperties.length} properties matching destination: ${destination}`);
                 }
 
-                console.log(`After filtering, displaying ${filteredProperties.length} properties`);
                 setProperties(filteredProperties);
                 setError(null);
             } catch (err) {
                 console.error("Error fetching properties:", err);
-                setError("Failed to load properties from API. Please try again later.");
+                setError("Error loading properties. Please try again later.");
             } finally {
                 setLoading(false);
             }
