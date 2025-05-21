@@ -64,11 +64,11 @@ const PropertyGrid = ({ searchParams }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {properties.map((property) => (
-        <PropertyCard key={property.propertyID} property={property} />
-      ))}
-    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8 px-8">
+  {properties.map((property) => (
+    <PropertyCard key={property.propertyID} property={property} />
+  ))}
+</div>
   );
 };
 

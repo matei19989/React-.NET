@@ -40,47 +40,55 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     ? propertyImages[0].imageUrl 
     : 'https://placehold.co/600x400?text=No+Image';
 
-  // Calculate random rating for demo purposes (in a real app, this would come from reviews)
-  const rating = ((Math.random() * 2) + 3).toFixed(1); // Random rating between 3.0 and 5.0
+  // Handle favorite button click without navigating
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation(); // Stop event bubbling
+    // Add favorite logic here
+    console.log('Added to favorites:', propertyID);
+  };
 
   return (
-    <div className="group">
-      <Link to={`/property/${propertyID}`} className="block">
-        <div className="relative overflow-hidden rounded-xl aspect-square">
-          {/* Main property image */}
+    <Link to={`/property/${propertyID}`} className="block text-inherit no-underline">
+      <div className="group cursor-pointer">
+        <div className="relative overflow-hidden rounded-xl aspect-square mb-2">
+          {/* Image */}
           <img 
             src={mainImage} 
             alt={title}
             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
           />
           
-          {/* Favorite button */}
-          <button className="absolute top-3 right-3 p-2 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100 transition-colors duration-200">
-            <Heart className="h-5 w-5 text-gray-500 hover:text-red-500 transition-colors duration-200" />
+          {/* Favorite button with event stopping */}
+          <button 
+            className="absolute top-3 right-3 p-2 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100 transition-colors"
+            onClick={handleFavoriteClick}
+          >
+            <Heart className="h-5 w-5 text-gray-500 hover:text-red-500" />
           </button>
         </div>
         
-        {/* Property details */}
-        <div className="mt-2">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-gray-900 truncate">{title}</h3>
+        {/* Property details with better spacing */}
+        <div>
+          <div className="flex justify-between items-start">
+            <h3 className="font-medium text-base">{title}</h3>
             <div className="flex items-center">
-              <Star className="h-4 w-4 fill-current text-black" />
-              <span className="ml-1 text-sm">{rating}</span>
+              <Star className="h-4 w-4 fill-current" />
+              <span className="ml-1 text-sm">4.8</span>
             </div>
           </div>
           
           <p className="text-gray-500 text-sm mt-1">
-            {location.city}, {location.state}, {location.country}
+            {location.city}, {location.state}
           </p>
           
-          <p className="mt-2">
+          <p className="mt-1">
             <span className="font-semibold">${pricePerNight}</span>
-            <span className="text-gray-500"> / night</span>
+            <span className="text-gray-500"> night</span>
           </p>
         </div>
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 };
 
