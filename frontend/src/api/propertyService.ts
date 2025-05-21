@@ -40,6 +40,7 @@ export interface ApiProperty {
         latitude: number;
         longitude: number;
     };
+
     propertyImages: Array<{
         imageID: number;
         propertyID: number;
