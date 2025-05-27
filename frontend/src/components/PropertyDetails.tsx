@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchPropertyById, ApiProperty } from '../services/propertyService';
+import { fetchPropertyById, ApiProperty, convertCurrency, getCurrencySymbol } from '../services/propertyService';
 import { useAuth } from '../context/AuthContext';
 import BookingCard from './BookingCard';
 import { ArrowLeft, ArrowRight, Star, MapPin, Users, Bed, Bath, Home } from 'lucide-react';
@@ -23,11 +23,26 @@ const PropertyDetails: React.FC = () => {
     // For image gallery
     const [activeImageIndex, setActiveImageIndex] = useState(0);
 
+    // Listen for currency changes in localStorage
     useEffect(() => {
-        const storedCurrency = localStorage.getItem('preferredCurrency');
-        if (storedCurrency) {
+        const handleStorageChange = () => {
+            const storedCurrency = localStorage.getItem('preferredCurrency') || 'USD';
             setCurrency(storedCurrency);
-        }
+        };
+
+        // Initial load
+        handleStorageChange();
+
+        // Listen for changes
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also check periodically in case storage event doesn't fire
+        const interval = setInterval(handleStorageChange, 1000);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(interval);
+        };
     }, []);
 
     useEffect(() => {
@@ -50,25 +65,26 @@ const PropertyDetails: React.FC = () => {
         getPropertyDetails();
     }, [id]);
 
-    const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£';
+    // Currency conversion function
+    const convertPrice = (price: number): number => {
+        return convertCurrency(price, 'USD', currency);
+    };
+
+    const currencySymbol = getCurrencySymbol(currency);
 
     // Next image in gallery
     const nextImage = () => {
         if (!property || !property.propertyImages) return;
-        // @ts-ignore
         setActiveImageIndex((prevIndex) =>
-            // @ts-ignore
-            prevIndex === property.propertyImages.length - 1 ? 0 : prevIndex + 1
+            prevIndex === property.propertyImages!.length - 1 ? 0 : prevIndex + 1
         );
     };
 
     // Previous image in gallery
     const prevImage = () => {
         if (!property || !property.propertyImages) return;
-        // @ts-ignore
         setActiveImageIndex((prevIndex) =>
-            // @ts-ignore
-            prevIndex === 0 ? property.propertyImages.length - 1 : prevIndex - 1
+            prevIndex === 0 ? property.propertyImages!.length - 1 : prevIndex - 1
         );
     };
 
@@ -99,7 +115,7 @@ const PropertyDetails: React.FC = () => {
     }
 
     // Get current image or use placeholder
-    const images: PropertyImage[] = property.propertyImages || [];
+    const images = property.propertyImages || [];
     const currentImage = images.length > 0
         ? images[activeImageIndex].imageUrl
         : 'https://via.placeholder.com/1200x800?text=No+Image+Available';
@@ -156,7 +172,7 @@ const PropertyDetails: React.FC = () => {
                     <div className="flex gap-2 mt-2 overflow-x-auto pb-2">
                         {images.map((image, index) => (
                             <button
-                                key={image.imageID}
+                                key={index}
                                 onClick={() => selectImage(index)}
                                 className={`flex-shrink-0 rounded-lg overflow-hidden h-20 w-20 border-2 transition ${
                                     activeImageIndex === index ? 'border-blue-500' : 'border-transparent hover:border-gray-300'
@@ -217,7 +233,20 @@ const PropertyDetails: React.FC = () => {
 
                     {/* Cancellation Policy */}
                     <h3 className="text-xl font-semibold mb-3">Cancellation Policy</h3>
-                    <p className="text-gray-700">{property.cancellationPolicy}</p>
+                    <p className="text-gray-700 mb-6">{property.cancellationPolicy}</p>
+
+                    {/* Pricing Details */}
+                    <h3 className="text-xl font-semibold mb-3">Pricing</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between mb-2">
+                            <span>Nightly Rate:</span>
+                            <span className="font-semibold">{currencySymbol}{convertPrice(property.pricePerNight)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Cleaning Fee:</span>
+                            <span className="font-semibold">{currencySymbol}{convertPrice(property.cleaningFee)}</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Booking Card */}

@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
     fetchCurrentUserProperties,
     deleteProperty,
-    ApiProperty
-} from '../services/propertyService.js';
+    ApiProperty,
+    convertCurrency,
+    getCurrencySymbol
+} from '../services/propertyService';
 import { useAuth } from '../context/AuthContext';
 import { PlusCircle, Edit, Trash2, AlertCircle } from 'lucide-react';
 
@@ -17,6 +19,29 @@ const PropertyManagementPage: React.FC = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [propertyToDelete, setPropertyToDelete] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [currency, setCurrency] = useState('USD');
+
+    // Listen for currency changes
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const storedCurrency = localStorage.getItem('preferredCurrency') || 'USD';
+            setCurrency(storedCurrency);
+        };
+
+        // Initial load
+        handleStorageChange();
+
+        // Listen for changes
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also check periodically
+        const interval = setInterval(handleStorageChange, 1000);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(interval);
+        };
+    }, []);
 
     useEffect(() => {
         const loadProperties = async () => {
@@ -68,6 +93,8 @@ const PropertyManagementPage: React.FC = () => {
         setShowDeleteConfirm(false);
         setPropertyToDelete(null);
     };
+
+    const currencySymbol = getCurrencySymbol(currency);
 
     if (loading) {
         return (
@@ -170,7 +197,7 @@ const PropertyManagementPage: React.FC = () => {
                                 </td>
                                 <td className="py-4 px-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-gray-900">
-                                        ${property.pricePerNight}/night
+                                        {currencySymbol}{convertCurrency(property.pricePerNight, 'USD', currency)}/night
                                     </div>
                                 </td>
                                 <td className="py-4 px-4 whitespace-nowrap">

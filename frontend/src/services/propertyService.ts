@@ -1,9 +1,10 @@
 // src/api/propertyService.ts
 import api from '../api/api';
 
-// Define the property interface
+// Complete property interface matching backend model
 export interface ApiProperty {
   propertyID: number;
+  hostID: number;
   title: string;
   description: string;
   pricePerNight: number;
@@ -11,18 +12,62 @@ export interface ApiProperty {
   bedrooms: number;
   bathrooms: number;
   propertyType: string;
+  amenities: string;
   isActive: boolean;
-  hostID?: number;
+  dateListedd?: string;
+  cleaningFee: number;
+  cancellationPolicy: string;
+  houseRules: string;
   location: {
+    locationID?: number;
+    country: string;
     city: string;
     state: string;
-    country: string;
+    zipCode: string;
+    address: string;
+    latitude: number;
+    longitude: number;
   };
   propertyImages?: {
+    imageID?: number;
+    propertyID?: number;
     imageUrl: string;
     description: string;
   }[];
-  // Add other properties as needed
+  host?: {
+    userID: number;
+    firstname: string;
+    lastname: string;
+    email: string;
+    isHost: boolean;
+    profilePicture: string;
+  };
+}
+
+// Property input for create/update operations
+export interface PropertyInput {
+  title: string;
+  description: string;
+  pricePerNight: number;
+  maxGuests: number;
+  bedrooms: number;
+  bathrooms: number;
+  propertyType: string;
+  amenities: string;
+  cleaningFee: number;
+  cancellationPolicy: string;
+  houseRules: string;
+  location: LocationInput;
+}
+
+export interface LocationInput {
+  country: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  address: string;
+  latitude: number;
+  longitude: number;
 }
 
 /**
@@ -37,8 +82,6 @@ export const fetchProperties = async (): Promise<ApiProperty[]> => {
     return mockProperties; // Fallback to mock data on error
   }
 };
-
-
 
 /**
  * Get a specific property by ID
@@ -99,15 +142,14 @@ export const fetchCurrentUserProperties = async (): Promise<ApiProperty[]> => {
   } catch (error) {
     console.error("Error fetching current user properties:", error);
     // For development, return filtered mock properties
-    // In real app, you'd want to get the user ID from auth context
-    return mockProperties.filter(p => p.hostID === 1); // Assuming user ID 1 for mock data
+    return mockProperties.filter(p => p.hostID === 1);
   }
 };
 
 /**
  * Create a new property
  */
-export const createProperty = async (property: Omit<ApiProperty, 'propertyID'>): Promise<ApiProperty> => {
+export const createProperty = async (property: PropertyInput): Promise<ApiProperty> => {
   try {
     const response = await api.post<ApiProperty>('/apiproperties', property);
     return response.data;
@@ -117,16 +159,28 @@ export const createProperty = async (property: Omit<ApiProperty, 'propertyID'>):
   }
 };
 
+/**
+ * Fetch property by ID (alias for getProperty)
+ */
 export const fetchPropertyById = async (id: number): Promise<ApiProperty> => {
-  return getProperty(id); // Use the existing getProperty function
+  return getProperty(id);
 };
 
 /**
  * Update an existing property
  */
-export const updateProperty = async (id: number, property: ApiProperty): Promise<void> => {
+export const updateProperty = async (id: number, property: PropertyInput): Promise<void> => {
   try {
-    await api.put(`/apiproperties/${id}`, property);
+    // Create the full property object with the ID
+    const fullProperty = {
+      propertyID: id,
+      ...property,
+      hostID: 1, // This should come from auth context in real app
+      isActive: true,
+      locationID: 1 // This should be managed by the backend
+    };
+    
+    await api.put(`/apiproperties/${id}`, fullProperty);
   } catch (error) {
     console.error(`Error updating property ${id}:`, error);
     throw error;
@@ -137,19 +191,28 @@ export const updateProperty = async (id: number, property: ApiProperty): Promise
 const mockProperties: ApiProperty[] = [
   {
     propertyID: 1,
+    hostID: 1,
     title: "Cozy Apartment in NY",
-    description: "Experience the charm of New York City in this beautiful, centrally located apartment.",
+    description: "Experience the charm of New York City in this beautiful, centrally located apartment. This cozy space offers modern amenities with classic New York style, perfect for couples or small families looking to explore the city.",
     pricePerNight: 100.00,
     maxGuests: 4,
     bedrooms: 2,
     bathrooms: 1,
     propertyType: "Apartment",
+    amenities: "WiFi, TV, Air Conditioning, Kitchen, Washer, Dryer, Iron, Heating, Coffee Maker",
     isActive: true,
-    hostID: 1,
+    cleaningFee: 20.00,
+    cancellationPolicy: "Flexible - Full refund if cancelled at least 48 hours before check-in",
+    houseRules: "No smoking, No pets, No parties or events, Check-in after 3PM",
     location: {
-      city: "New York",
+      locationID: 1,
       country: "USA",
-      state: "NY"
+      city: "New York",
+      state: "NY",
+      zipCode: "10001",
+      address: "123 Main St",
+      latitude: 40.7128,
+      longitude: -74.0060
     },
     propertyImages: [
       {
@@ -159,24 +222,41 @@ const mockProperties: ApiProperty[] = [
       {
         imageUrl: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=1080&q=80",
         description: "Master bedroom"
+      },
+      {
+        imageUrl: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1080&q=80",
+        description: "Modern kitchen"
+      },
+      {
+        imageUrl: "https://images.unsplash.com/photo-1613545325278-f24b0cae1224?auto=format&fit=crop&w=1080&q=80",
+        description: "Bathroom"
       }
     ]
   },
   {
     propertyID: 2,
+    hostID: 1,
     title: "Luxury Downtown SF Loft",
-    description: "Stay in the heart of San Francisco in this modern luxury loft.",
+    description: "Stay in the heart of San Francisco in this modern luxury loft. Featuring high ceilings, floor-to-ceiling windows, and designer furnishings.",
     pricePerNight: 175.00,
     maxGuests: 2,
     bedrooms: 1,
     bathrooms: 1,
     propertyType: "Loft",
+    amenities: "WiFi, Smart TV, Gym Access, Rooftop Terrace, Fully Equipped Kitchen, Washer/Dryer, Dishwasher",
     isActive: true,
-    hostID: 1,
+    cleaningFee: 30.00,
+    cancellationPolicy: "Moderate - Full refund if cancelled 5 days before check-in",
+    houseRules: "No smoking, Quiet hours after 10PM, No pets",
     location: {
-      city: "San Francisco",
+      locationID: 2,
       country: "USA",
-      state: "CA"
+      city: "San Francisco",
+      state: "CA",
+      zipCode: "94103",
+      address: "456 Market St",
+      latitude: 37.7749,
+      longitude: -122.4194
     },
     propertyImages: [
       {
@@ -190,6 +270,35 @@ const mockProperties: ApiProperty[] = [
     ]
   }
 ];
+
+// Currency conversion utilities
+export const currencyRates = {
+  USD: 1,
+  EUR: 0.92,
+  GBP: 0.79
+};
+
+export const convertCurrency = (amount: number, fromCurrency: string, toCurrency: string): number => {
+  if (fromCurrency === toCurrency) return amount;
+  
+  // Convert to USD first (base currency)
+  const usdAmount = amount / currencyRates[fromCurrency as keyof typeof currencyRates];
+  
+  // Convert from USD to target currency
+  const convertedAmount = usdAmount * currencyRates[toCurrency as keyof typeof currencyRates];
+  
+  return Math.round(convertedAmount * 100) / 100; // Round to 2 decimal places
+};
+
+export const getCurrencySymbol = (currency: string): string => {
+  switch (currency) {
+    case 'USD': return '$';
+    case 'EUR': return '€';
+    case 'GBP': return '£';
+    default: return '$';
+  }
+};
+
 const propertyService = {
   fetchProperties,
   getProperty,
@@ -199,9 +308,9 @@ const propertyService = {
   fetchCurrentUserProperties,
   createProperty,
   updateProperty,
-  // Add this alias for compatibility
-  getProperties: fetchProperties
+  getProperties: fetchProperties,
+  convertCurrency,
+  getCurrencySymbol
 };
 
 export default propertyService;
-

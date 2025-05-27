@@ -9,6 +9,7 @@ import {
     validateBookingDates,
     BookingFormData
 } from '../services/bookingService';
+import { convertCurrency, getCurrencySymbol } from '../services/propertyService';
 
 interface BookingCardProps {
     propertyId: number;
@@ -27,6 +28,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
 }) => {
     const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
+    const [currency, setCurrency] = useState('USD');
     
     const [bookingData, setBookingData] = useState<BookingFormData>({
         checkInDate: null,
@@ -39,6 +41,33 @@ const BookingCard: React.FC<BookingCardProps> = ({
     const [success, setSuccess] = useState<string | null>(null);
     const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
     const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+
+    // Listen for currency changes
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const storedCurrency = localStorage.getItem('preferredCurrency') || 'USD';
+            setCurrency(storedCurrency);
+        };
+
+        // Initial load
+        handleStorageChange();
+
+        // Listen for changes
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also check periodically
+        const interval = setInterval(handleStorageChange, 1000);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(interval);
+        };
+    }, []);
+
+    // Convert prices to selected currency
+    const convertedPricePerNight = convertCurrency(pricePerNight, 'USD', currency);
+    const convertedCleaningFee = convertCurrency(cleaningFee, 'USD', currency);
+    const currencySymbol = getCurrencySymbol(currency);
 
     // Calculate pricing when dates change
     const pricing = bookingData.checkInDate && bookingData.checkOutDate
@@ -192,7 +221,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
             {/* Price Header */}
             <div className="flex justify-between items-center mb-4">
                 <div className="text-2xl font-bold">
-                    ${pricePerNight} <span className="text-gray-500 text-base font-normal">night</span>
+                    {currencySymbol}{convertedPricePerNight} <span className="text-gray-500 text-base font-normal">night</span>
                 </div>
                 <div className="flex items-center">
                     <Star className="w-4 h-4 fill-current text-gray-900" />
@@ -305,16 +334,16 @@ const BookingCard: React.FC<BookingCardProps> = ({
                 <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                            <span>${pricePerNight} x {pricing.nights} night{pricing.nights !== 1 ? 's' : ''}</span>
-                            <span>${pricing.breakdown.accommodationTotal}</span>
+                            <span>{currencySymbol}{convertedPricePerNight} x {pricing.nights} night{pricing.nights !== 1 ? 's' : ''}</span>
+                            <span>{currencySymbol}{convertCurrency(pricing.breakdown.accommodationTotal, 'USD', currency)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span>Cleaning fee</span>
-                            <span>${cleaningFee}</span>
+                            <span>{currencySymbol}{convertedCleaningFee}</span>
                         </div>
                         <div className="flex justify-between pt-2 border-t border-gray-200 font-semibold">
                             <span>Total</span>
-                            <span>${pricing.totalPrice}</span>
+                            <span>{currencySymbol}{convertCurrency(pricing.totalPrice, 'USD', currency)}</span>
                         </div>
                     </div>
                 </div>

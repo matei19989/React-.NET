@@ -7,6 +7,7 @@ import {
     Booking 
 } from '../services/bookingService';
 import { useAuth } from '../context/AuthContext';
+import { convertCurrency, getCurrencySymbol } from '../services/propertyService';
 
 const UserBookingsPage: React.FC = () => {
     const { user } = useAuth();
@@ -16,6 +17,29 @@ const UserBookingsPage: React.FC = () => {
     const [cancellingId, setCancellingId] = useState<number | null>(null);
     const [showCancelConfirm, setShowCancelConfirm] = useState<number | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [currency, setCurrency] = useState('USD');
+
+    // Listen for currency changes
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const storedCurrency = localStorage.getItem('preferredCurrency') || 'USD';
+            setCurrency(storedCurrency);
+        };
+
+        // Initial load
+        handleStorageChange();
+
+        // Listen for changes
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also check periodically
+        const interval = setInterval(handleStorageChange, 1000);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(interval);
+        };
+    }, []);
 
     useEffect(() => {
         loadBookings();
@@ -90,6 +114,8 @@ const UserBookingsPage: React.FC = () => {
             day: 'numeric'
         });
     };
+
+    const currencySymbol = getCurrencySymbol(currency);
 
     if (loading) {
         return (
@@ -201,7 +227,7 @@ const UserBookingsPage: React.FC = () => {
                                     {/* Price */}
                                     <div className="flex justify-between items-center mb-4">
                                         <span className="text-lg font-semibold text-gray-900">
-                                            ${booking.totalPrice}
+                                            {currencySymbol}{convertCurrency(booking.totalPrice, 'USD', currency)}
                                         </span>
                                     </div>
 

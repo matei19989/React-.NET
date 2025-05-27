@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { convertCurrency, getCurrencySymbol } from '../services/propertyService';
 
 // Define an interface for the property data structure
 interface PropertyData {
@@ -26,6 +27,30 @@ interface PropertyCardProps {
 
 // Add type annotation to your component
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+  const [currency, setCurrency] = useState('USD');
+
+  // Listen for currency changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedCurrency = localStorage.getItem('preferredCurrency') || 'USD';
+      setCurrency(storedCurrency);
+    };
+
+    // Initial load
+    handleStorageChange();
+
+    // Listen for changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically in case storage event doesn't fire
+    const interval = setInterval(handleStorageChange, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
   // Destructure the property data
   const { 
     propertyID, 
@@ -47,6 +72,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     // Add favorite logic here
     console.log('Added to favorites:', propertyID);
   };
+
+  // Convert price to selected currency
+  const convertedPrice = convertCurrency(pricePerNight, 'USD', currency);
+  const currencySymbol = getCurrencySymbol(currency);
 
   return (
     <Link to={`/property/${propertyID}`} className="block text-inherit no-underline">
@@ -83,7 +112,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           </p>
           
           <p className="mt-1">
-            <span className="font-semibold">${pricePerNight}</span>
+            <span className="font-semibold">{currencySymbol}{convertedPrice}</span>
             <span className="text-gray-500"> night</span>
           </p>
         </div>
