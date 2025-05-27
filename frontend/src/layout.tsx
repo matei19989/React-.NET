@@ -10,6 +10,7 @@ import PropertyManagementPage from './components/PropertyManagementPage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import BecomeHostPage from './components/BecomeHostPage';
+import UserBookingsPage from './components/UserBookingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './layout.css';
@@ -62,6 +63,14 @@ function Layout() {
                             element={
                                 <ProtectedRoute>
                                     <BecomeHostPage />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/trips" 
+                            element={
+                                <ProtectedRoute>
+                                    <UserBookingsPage />
                                 </ProtectedRoute>
                             } 
                         />

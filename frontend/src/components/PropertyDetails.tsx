@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchPropertyById, ApiProperty } from '../services/propertyService';
+import { useAuth } from '../context/AuthContext';
+import BookingCard from './BookingCard';
 import { ArrowLeft, ArrowRight, Star, MapPin, Users, Bed, Bath, Home } from 'lucide-react';
 
 interface PropertyImage {
@@ -12,6 +14,7 @@ interface PropertyImage {
 
 const PropertyDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const { user } = useAuth();
     const [property, setProperty] = useState<ApiProperty | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -218,53 +221,13 @@ const PropertyDetails: React.FC = () => {
                 </div>
 
                 {/* Booking Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 h-fit sticky top-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <div className="text-2xl font-bold">
-                            {currencySymbol}{property.pricePerNight} <span className="text-gray-500 text-base font-normal">night</span>
-                        </div>
-                        <div className="flex items-center">
-                            <Star className="w-4 h-4 fill-current text-gray-900" />
-                            <span className="ml-1">4.9</span>
-                        </div>
-                    </div>
-
-                    <div className="border border-gray-300 rounded-lg mb-4">
-                        <div className="grid grid-cols-2 divide-x divide-gray-300">
-                            <div className="p-3">
-                                <div className="text-xs uppercase font-semibold text-gray-500">Check-in</div>
-                                <div>Add date</div>
-                            </div>
-                            <div className="p-3">
-                                <div className="text-xs uppercase font-semibold text-gray-500">Checkout</div>
-                                <div>Add date</div>
-                            </div>
-                        </div>
-                        <div className="border-t border-gray-300 p-3">
-                            <div className="text-xs uppercase font-semibold text-gray-500">Guests</div>
-                            <div>1 guest</div>
-                        </div>
-                    </div>
-
-                    <button className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-rose-600 transition">
-                        Reserve
-                    </button>
-
-                    <div className="mt-4">
-                        <div className="flex justify-between py-2">
-                            <div>{currencySymbol}{property.pricePerNight} x 5 nights</div>
-                            <div>{currencySymbol}{property.pricePerNight * 5}</div>
-                        </div>
-                        <div className="flex justify-between py-2">
-                            <div>Cleaning fee</div>
-                            <div>{currencySymbol}{property.cleaningFee}</div>
-                        </div>
-                        <div className="flex justify-between py-2 border-t border-gray-200 mt-2 pt-2">
-                            <div className="font-bold">Total</div>
-                            <div className="font-bold">{currencySymbol}{property.pricePerNight * 5 + property.cleaningFee}</div>
-                        </div>
-                    </div>
-                </div>
+                <BookingCard
+                    propertyId={property.propertyID}
+                    pricePerNight={property.pricePerNight}
+                    cleaningFee={property.cleaningFee}
+                    maxGuests={property.maxGuests}
+                    isOwnProperty={user?.userId === property.hostID}
+                />
             </div>
         </div>
     );
